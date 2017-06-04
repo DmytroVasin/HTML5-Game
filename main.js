@@ -34,22 +34,22 @@ function hitNeedle(player, tile) {
   return false;
 }
 
+function initWeapon() {
+  weapon = game.add.weapon(30, 'bullet');
+
+  weapon.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
+  weapon.bulletLifespan = 2000;
+  weapon.bulletSpeed = 400;
+  weapon.fireRate = 100;
+
+  weapon.bulletAngleOffset = 0;
+  weapon.fireAngle = 180;
+
+  //  Tell the Weapon to track the 'player' Sprite, offset by 14px horizontally, 0 vertically
+  weapon.trackSprite(sprite, 10, 30);
+}
+
 function create() {
-    //  Creates 30 bullets, using the 'bullet' graphic
-    weapon = game.add.weapon(30, 'bullet');
-    //  The bullets will be automatically killed when they are 2000ms old
-    weapon.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
-    weapon.bulletLifespan = 2000;
-    //  The speed at which the bullet is fired
-    weapon.bulletSpeed = 600;
-    //  Speed-up the rate of fire, allowing them to shoot 1 bullet every 60ms
-    weapon.fireRate = 100;
-
-
-
-
-
-
   game.physics.startSystem(Phaser.Physics.ARCADE);
 
   background = game.add.tileSprite(0, 0, 800, 600, 'background');
@@ -81,11 +81,7 @@ function create() {
   sprite.frame = 4; // Start frame
 
 
-
-    //  Tell the Weapon to track the 'player' Sprite
-    //  With no offsets from the position
-    //  But the 'true' argument tells the weapon to track sprite rotation
-    weapon.trackSprite(sprite, 14, 0);
+  initWeapon();
 
 
   game.camera.follow(sprite);
@@ -142,10 +138,10 @@ function update() {
 }
 
 function render() {
-  // Useful debug things you can turn on to see what's happening
-  // game.debug.spriteBounds(sprite);
-  // game.debug.cameraInfo(game.camera, 32, 32);
-  // game.debug.bodyInfo(sprite, 32, 32);
-  // game.debug.body(sprite);
+  // // Useful debug things you can turn on to see what's happening
+  game.debug.spriteBounds(sprite);
+  game.debug.cameraInfo(game.camera, 32, 32);
+  game.debug.bodyInfo(sprite, 32, 32);
+  game.debug.body(sprite);
   weapon.debug();
 }
