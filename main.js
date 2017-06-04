@@ -3,6 +3,7 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, cr
 function preload() {
   game.load.tilemap('map', './new-assets/map.json', null, Phaser.Tilemap.TILED_JSON);
 
+  game.load.image('diamond', './tiles/diamond.png');
   game.load.image('wall', './tiles/ground_1x1.png');
   game.load.image('coin', './sprites/coin.png');
   game.load.image('background', './sprites/background.png');
@@ -23,7 +24,13 @@ var fireButton;
 
 function hitCoin(sprite, tile) {
   tile.alpha = 0.2;
-  layer.dirty = true;
+  layer.dirty = true; // ?
+  return false;
+}
+function hitNeedle(player, tile) {
+  player.reset(256, 64)
+  // tile.alpha = 0.2;
+  // layer.dirty = true; // ?
   return false;
 }
 
@@ -55,10 +62,12 @@ function create() {
 
   map.addTilesetImage('wall');
   map.addTilesetImage('coin');
+  map.addTilesetImage('diamond');
 
   map.setCollisionBetween(1, 25);
 
   map.setTileIndexCallback(26, hitCoin, this); //  This will set Tile ID 26 (the coin) to call the hitCoin function when collided with
+  map.setTileIndexCallback(32, hitNeedle, this);
 
   sprite = game.add.sprite(256, 64, 'dude'); // Position
   game.physics.enable(sprite);
