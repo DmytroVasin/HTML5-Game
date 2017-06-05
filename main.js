@@ -5,44 +5,43 @@ function preload() {
 
   game.load.image('diamond', './tiles/diamond.png');
   game.load.image('wall', './tiles/ground_1x1.png');
+  game.load.image('triangle', './tiles/triangle.png');
   game.load.image('coin', './sprites/coin.png');
   game.load.image('background', './sprites/background.png');
   game.load.image('ball', './sprites/ball.png');
   game.load.image('firstaid', './sprites/firstaid.png');
-
-  game.load.spritesheet('dude', './sprites/dude.png', 32, 48);  // key, sourcefile, framesize x, framesize y
 }
 
 var map;
 var layer;
 var sprite;
 var cursors;
-var facing = 'turn';
 var background;
 var ball;
 var score = 0;
 var scoreCaption;
+var triangle;
 
-function hitCoin(sprite, tile) {
-  scoreCaption.text = 'Score: ' + 2;
+function hitNeedleCallback(ball, coin, ball_fixture, coin_fixture, begin) {
+  if (!begin) { return; }
 
-  tile.alpha = 0.2;
-  layer.dirty = true; // ?
-  return false;
+  ball.sprite.destroy()
 }
-function hitNeedle(player, tile) {
-  player.reset(256, 64)
-  // tile.alpha = 0.2;
-  // layer.dirty = true; // ?
-  return false;
+
+function createTriangle(x, y) {
+  triangle = game.add.sprite(x, y, 'triangle');
+  game.physics.box2d.enable(triangle);
+  triangle.body.clearFixtures();
+  triangle.body.setPolygon([0,0, 0, -30, 30,0]);
+  triangle.anchor.setTo(0,1);
+  triangle.body.static = true;
+  triangle.body.angle = -90;
 }
 
 function create() {
   game.physics.startSystem(Phaser.Physics.BOX2D);
 
   game.physics.box2d.gravity.y = 500;
-  // game.physics.box2d.restitution = 0.7;
-
 
   background = game.add.tileSprite(0, 0, 800, 600, 'background');
   background.fixedToCamera = true;
@@ -59,9 +58,6 @@ function create() {
   map.addTilesetImage('diamond');
 
   map.setCollisionBetween(1, 25);
-
-  // map.setTileIndexCallback(26, hitCoin, this); //  This will set Tile ID 26 (the coin) to call the hitCoin function when collided with
-  // map.setTileIndexCallback(32, hitNeedle, this);
 
   layer = map.createLayer('Map Layer');
 
@@ -81,6 +77,10 @@ function create() {
   game.physics.box2d.setBoundsToWorld(true, true, true, true, false);
 
 
+
+  createTriangle(447, 351)
+
+
   var coins = game.add.group();
   coins.enableBody = true;
   coins.physicsBodyType = Phaser.Physics.BOX2D;
@@ -92,23 +92,28 @@ function create() {
     sprite.body.sensor = true;
   }
 
-  // map.setTileIndexCallback(26, getCoinCallback, this); //  This will set Tile ID 26 (the coin) to call the hitCoin function when collided with
-  // ball.body.setBodyContactCallback(26, getCoinCallback, this);
+  for (var i = 0; i < 1; i++) {
+    var sprite = coins.create(150 * (i+1), 230, 'diamond');
+    sprite.body.setCollisionCategory(27); // this is a bitmask
+    sprite.body.gravityScale = false;
+    // sprite.body.sensor = true;
+  }
 
-  // A callback to match fixtures of category 26 (bitmask!)
   ball.body.setCategoryContactCallback(26, getCoinCallback, this);
+  ball.body.setCategoryContactCallback(27, hitNeedleCallback, this);
 
   game.camera.follow(ball);
 
   cursors = game.input.keyboard.createCursorKeys();
 
   scoreCaption = game.add.text(5, 5, 'Score: ' + score, { fill: '#ffffff', font: '14pt Arial' });
+
+  game.input.onDown.add(mouseDragStart, this);
+  game.input.addMoveCallback(mouseDragMove, this);
+  game.input.onUp.add(mouseDragEnd, this);
 }
 
 function update() {
-
-  // ball.body.velocity.x -= 10;
-
   if (cursors.up.isDown) {
     if (ball.body.velocity.y == 0) {
       ball.body.velocity.y = -510
@@ -125,10 +130,10 @@ function update() {
 
 function render() {
   // // Useful debug things you can turn on to see what's happening
-  // game.debug.spriteBounds(ball);
-  // game.debug.cameraInfo(game.camera, 32, 32);
-  game.debug.bodyInfo(ball, 32, 32);
-  // game.debug.body(ball);
+  // game.debug.spriteBounds(triangle);
+  // game.debug.cameraInfo(ball, 32, 32);
+  // game.debug.bodyInfo(triangle, 32, 32);
+  // game.debug.body(triangle);
   // game.debug.box2dWorld();
 }
 
@@ -144,4 +149,17 @@ function getCoinCallback(ball, coin, ball_fixture, coin_fixture, begin) {
 function increaseScore() {
   score += 1;
   scoreCaption.text = 'Score: ' + score;
+}
+
+
+function mouseDragStart() {
+    game.physics.box2d.mouseDragStart(game.input.mousePointer);
+}
+
+function mouseDragMove() {
+    game.physics.box2d.mouseDragMove(game.input.mousePointer);
+}
+
+function mouseDragEnd() {
+    game.physics.box2d.mouseDragEnd();
 }
